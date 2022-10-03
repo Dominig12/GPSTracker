@@ -1,0 +1,8 @@
+/turf/simulated/wall
+/turf/simulated/mineral
+/obj/structure/window
+/obj/structure/grille
+/obj/structure/table
+/obj/machinery/door
+/obj/machinery/computer
+/obj/machinery/vending

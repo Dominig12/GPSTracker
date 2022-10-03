@@ -1,17 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
+using System.Security.Policy;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using Tesseract;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace GPSTracker
 {
     public partial class Form1 : Form
     {
-        SortedList<int, List<KeyValuePair<int, int>>> z_layers_player = new SortedList<int, List<KeyValuePair<int, int>>>();
-        SortedList<int, List<KeyValuePair<int, int>>> z_layers_gps = new SortedList<int, List<KeyValuePair<int, int>>>();
+        public SortedList<int, List<KeyValuePair<int, int>>> z_layers_player = new SortedList<int, List<KeyValuePair<int, int>>>();
+        public SortedList<int, List<KeyValuePair<int, int>>> z_layers_gps = new SortedList<int, List<KeyValuePair<int, int>>>();
+        public SortedList<int, List<KeyValuePair<int, int>>> z_layers_map = new SortedList<int, List<KeyValuePair<int, int>>>();
+        public SortedList<int, GraphicsState> z_map = new SortedList<int, GraphicsState>();
+        Graphics g = null;
 
         Form2 screnner;
 
@@ -21,7 +27,18 @@ namespace GPSTracker
         {
             InitializeComponent();
             screnner = new Form2();
+            g = display.CreateGraphics();
+            UpdateMapValues();
+
             GetCoordsInFile();
+            UpdateGPSValues();
+            AddLayer(3, z_layers_gps);
+            AddLayer(4, z_layers_gps);
+            AddLayer(5, z_layers_gps);
+            AddLayer(6, z_layers_gps);
+            z_layer_combo_box.SelectedItem = z_layer_combo_box.Items[0];
+            toolTip1.ShowAlways = true;
+            //Refresh();
         }
 
         private void GetCoordsInFile()
@@ -39,8 +56,13 @@ namespace GPSTracker
 
         private void AddLayer(int index, SortedList<int, List<KeyValuePair<int, int>>> z_layers)
         {
-            z_layers.Add(index, new List<KeyValuePair<int, int>>());
-            z_layer_combo_box.Items.Add(index);
+            if(!z_layers.ContainsKey(index))
+                z_layers.Add(index, new List<KeyValuePair<int, int>>());
+            if (!z_layer_combo_box.Items.Contains(index))
+            {
+                z_layer_combo_box.Items.Add(index);
+                z_layer_combo_box.SelectedItem = index;
+            }
         }
 
         private void UpdateValues(int x, int y, int z, SortedList<int, List<KeyValuePair<int, int>>> z_layers)
@@ -60,16 +82,52 @@ namespace GPSTracker
             }
         }
 
-        private void display_Paint(object sender, PaintEventArgs e)
+        private void UpdateMapValues()
         {
-            Graphics g = display.CreateGraphics();
-            g.Clear(Color.Black);
-            GridDraw(g);
-            PaintPoints(g, z_layers_player, new SolidBrush(Color.White));
-            PaintPoints(g, z_layers_gps, new SolidBrush(Color.Red), 1.5, false);
+            List<string> mapsList = new List<string>();
+            StreamReader reader = new StreamReader("maps.txt", System.Text.Encoding.GetEncoding(1251));
+            string line = "";
+            while ((line = reader.ReadLine()) != null)
+            {
+                string map = line.Split('=')[0];
+                mapsList.Add(map);
+            }
+            reader.Dispose();
+            reader.Close();
+
+            foreach (string maps in mapsList)
+            {
+                List<int[]> coords_array_map = GetMapData(maps);
+                foreach (int[] coords_int in coords_array_map)
+                {
+                    UpdateValues(coords_int[0], coords_int[1], coords_int[2], z_layers_map);
+                }
+            }
         }
 
-        private void PaintPoints(Graphics g, SortedList<int, List<KeyValuePair<int, int>>> z_layers, Brush color, double coef_scale = 1, bool connect = true)
+        private void display_Paint()
+        {
+            /*PaintPoints(fone, z_layers_map, new SolidBrush(Color.DarkKhaki), 1, false);
+            GridDraw(fone);*/
+            int z = Convert.ToInt32(z_layer_combo_box.SelectedItem.ToString());
+            if (!z_map.ContainsKey(z) || z_map[z] == null)
+            {
+                g.Clear(Color.Black);
+                PaintPoints(g, z_layers_map, new SolidBrush(Color.DarkKhaki), 0.5, false);
+                GridDraw(g);
+                if (!z_map.ContainsKey(z))
+                    z_map.Add(z, g.Save());
+                else
+                    z_map[z] = g.Save();
+            }
+            else
+                g.Restore(z_map[z]);
+            PaintPoints(g, z_layers_player, new SolidBrush(Color.White), 0.5);
+            PaintPoints(g, z_layers_gps, new SolidBrush(Color.Red), 0.5, false);
+            //Refresh();
+        }
+
+        public void PaintPoints(Graphics g, SortedList<int, List<KeyValuePair<int, int>>> z_layers, Brush color, double coef_scale = 1, bool connect = true)
         {
             if (!Convert.ToBoolean(z_layer_combo_box.SelectedItem))
                 return;
@@ -106,12 +164,15 @@ namespace GPSTracker
             }
         }
 
-        private void GridDraw(Graphics g)
+        public void GridDraw(Graphics g)
         {
-            for (int i = 0; i < display.Width; i += (display.Width / 255) * 15)
+            float coef = display.Width / 255;
+            for (float i = display.Width; i >= 0; i -= coef * 15)
             {
                 g.DrawLine(new Pen(new SolidBrush(Color.DarkGreen)), 0, i, display.Width, i);
+                g.DrawString((256 - (i / coef)).ToString(), new Font("Arial", 5), new SolidBrush(Color.White), 0, i);
                 g.DrawLine(new Pen(new SolidBrush(Color.DarkGreen)), i, 0, i, display.Width);
+                g.DrawString((i / coef).ToString(), new Font("Arial", 5), new SolidBrush(Color.White), i, 0);
             }
         }
 
@@ -126,7 +187,8 @@ namespace GPSTracker
                 return;
             UpdateValues(coords[0], coords[1], coords[2], z_layers_player);
             z_layer_combo_box.SelectedItem = coords[2];
-            Refresh();
+            //z_map[Convert.ToInt32(z_layer_combo_box.SelectedItem)] = null;
+            display_Paint();
         }
 
         private List<int[]> GetGpsData()
@@ -180,6 +242,105 @@ namespace GPSTracker
             }
 
             return coords_array;
+        }
+
+        private List<int[]> GetMapData(string map)
+        {
+            List<int[]> coords_map = new List<int[]>();
+            StreamReader reader_maps = new StreamReader("maps.txt");
+            string z_level = "";
+            do
+            {
+                if (z_level != "")
+                    break;
+                string map_obj = reader_maps.ReadLine();
+                if(map_obj.Split('=')[0] == map)
+                    z_level = map_obj.Split('=')[1];
+            } while (!reader_maps.EndOfStream);
+            reader_maps.Close();
+
+            if (z_level == "")
+                return coords_map;
+
+            StreamReader reader = new StreamReader(map);
+            List<string> tags_vision = new List<string>();
+            string line = "";
+
+            StreamReader reader_objects = new StreamReader("objects_vision.txt");
+            List<string> vision_obj = new List<string>();
+            while ((line = reader_objects.ReadLine()) != null)
+            {
+                vision_obj.Add(line);
+            }
+            reader_objects.Close();
+
+            line = "";
+
+            string find_tag = String.Format(@" \= \(");
+            Regex regex_tag = new Regex(find_tag, RegexOptions.Compiled);
+
+            while ((line = reader.ReadLine()) != null)
+            {
+                if (!regex_tag.IsMatch(line))
+                {
+                    continue;
+                }
+
+                string tag = line.Split(' ')[0];
+                tag = tag.Trim(new char[] { '"' });
+
+                bool success = false;
+                do
+                {
+                    if ((line = reader.ReadLine()) == null)
+                        break;
+                    if (success)
+                        continue;
+
+                    foreach (string obj in vision_obj)
+                    {
+                        if (line.Contains(obj))
+                        {
+                            tags_vision.Add(tag);
+                            success = true;
+                            break;
+                        }
+                    }
+
+                } while (!line.Contains(")"));
+            }
+            reader.Close();
+
+            reader = new StreamReader(map);
+
+            for (int i = 1; i <= 255; i++)
+            {
+                string find = String.Format(@"\({0}\,1\,1\)", i);
+                Regex regex = new Regex(find, RegexOptions.Compiled);
+                line = "";
+                if ((line = reader.ReadLine()) == null)
+                {
+                    return coords_map;
+                }
+                while (!regex.IsMatch(line))
+                {
+                    line = reader.ReadLine();
+                }
+
+                for (int o = 1; o <= 255; o++)
+                {
+                    foreach(string tag in tags_vision)
+                    {
+                        if (line == tag)
+                        {
+                            coords_map.Add(new int[3] { i, 257 - o, Convert.ToInt32(z_level) });
+                        }
+                    }
+                    line = reader.ReadLine();
+                }
+            }
+
+            return coords_map;
         }
 
         private List<string> ParseCoordsList(string line)
@@ -237,25 +398,61 @@ namespace GPSTracker
         {
             z_layers_gps.Clear();
             z_layers_player.Clear();
-            z_layer_combo_box.Items.Clear();
-            Refresh();
+            z_map.Clear();
+            textBox1.Text = "";
+            GetCoordsInFile();
+            UpdateGPSValues();
+            display_Paint();
         }
 
         private void z_layer_combo_box_SelectedIndexChanged(object sender, EventArgs e)
         {
-            Refresh();
+            z_map[Convert.ToInt32(z_layer_combo_box.SelectedItem)] = null;
+            display_Paint();
         }
 
         private void button3_Click(object sender, EventArgs e)
         {
+            if (textBox1.Text.Length < 1)
+                GetCoordsInFile();
             UpdateGPSValues();
             z_layer_combo_box.SelectedItem = z_layer_combo_box.Items[0];
-            Refresh();
+            display_Paint();
         }
 
         private void label3_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void display_MouseDown(object sender, MouseEventArgs e)
+        {
+            float coef = display.Width / 255;
+            int x = Convert.ToInt32((e.X - coef / 2) / coef);
+            int y = Convert.ToInt32(255 - (e.Y - coef / 2) / coef);
+            int z = Convert.ToInt32(z_layer_combo_box.SelectedItem.ToString());
+            Form3 form = new Form3();
+            form.form = this;
+            form.z_layers_gps = z_layers_gps;
+            form.z_layers_map = z_layers_map;
+            form.z_layers_player = z_layers_player;
+            form.initial_coords = new KeyValuePair<int, KeyValuePair<int, int>>(z, new KeyValuePair<int, int>(x, y));
+            form.Show();
+        }
+
+        private void display_MouseMove(object sender, MouseEventArgs e)
+        {
+            float coef = display.Width / 255;
+            int x = Convert.ToInt32((e.X - coef / 2) / coef);
+            int y = Convert.ToInt32(255 - (e.Y - coef / 2) / coef);
+            int z = Convert.ToInt32(z_layer_combo_box.SelectedItem.ToString());
+            string coords_text = String.Format("{0} {1} {2}", x, y, z);
+            toolTip1.SetToolTip(display, coords_text);
+        }
+
+        private void coords_LocationChanged(object sender, EventArgs e)
+        {
+            
         }
     }
 }

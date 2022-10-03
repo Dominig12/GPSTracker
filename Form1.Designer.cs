@@ -29,35 +29,20 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.display = new System.Windows.Forms.GroupBox();
             this.z_layer_combo_box = new System.Windows.Forms.ComboBox();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.button1 = new System.Windows.Forms.Button();
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.button2 = new System.Windows.Forms.Button();
-            this.label2 = new System.Windows.Forms.Label();
-            this.button3 = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
+            this.button3 = new System.Windows.Forms.Button();
+            this.label2 = new System.Windows.Forms.Label();
+            this.button2 = new System.Windows.Forms.Button();
+            this.display = new System.Windows.Forms.Panel();
+            this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // display
-            // 
-            this.display.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.display.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
-            this.display.CausesValidation = false;
-            this.display.ForeColor = System.Drawing.Color.Black;
-            this.display.Location = new System.Drawing.Point(12, 12);
-            this.display.MinimumSize = new System.Drawing.Size(255, 255);
-            this.display.Name = "display";
-            this.display.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.display.Size = new System.Drawing.Size(765, 765);
-            this.display.TabIndex = 0;
-            this.display.TabStop = false;
-            this.display.Text = "groupBox1";
-            this.display.Paint += new System.Windows.Forms.PaintEventHandler(this.display_Paint);
             // 
             // z_layer_combo_box
             // 
@@ -67,7 +52,7 @@
             this.z_layer_combo_box.FormattingEnabled = true;
             this.z_layer_combo_box.Location = new System.Drawing.Point(6, 32);
             this.z_layer_combo_box.Name = "z_layer_combo_box";
-            this.z_layer_combo_box.Size = new System.Drawing.Size(134, 21);
+            this.z_layer_combo_box.Size = new System.Drawing.Size(98, 21);
             this.z_layer_combo_box.TabIndex = 1;
             this.z_layer_combo_box.SelectedIndexChanged += new System.EventHandler(this.z_layer_combo_box_SelectedIndexChanged);
             // 
@@ -129,16 +114,26 @@
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Управление";
             // 
-            // button2
+            // label3
             // 
-            this.button2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.button2.Location = new System.Drawing.Point(6, 88);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(98, 23);
-            this.button2.TabIndex = 7;
-            this.button2.Text = "Очистить";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(110, 64);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(21, 13);
+            this.label3.TabIndex = 10;
+            this.label3.Text = "Off";
+            this.label3.Click += new System.EventHandler(this.label3_Click);
+            // 
+            // button3
+            // 
+            this.button3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.button3.Location = new System.Drawing.Point(6, 117);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(98, 23);
+            this.button3.TabIndex = 9;
+            this.button3.Text = "Обновить";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
             // label2
             // 
@@ -152,26 +147,27 @@
             this.label2.TabIndex = 8;
             this.label2.Text = "(x, y, z) - template";
             // 
-            // button3
+            // button2
             // 
-            this.button3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.button3.Location = new System.Drawing.Point(6, 117);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(98, 23);
-            this.button3.TabIndex = 9;
-            this.button3.Text = "Обновить";
-            this.button3.UseVisualStyleBackColor = true;
-            this.button3.Click += new System.EventHandler(this.button3_Click);
+            this.button2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.button2.Location = new System.Drawing.Point(6, 88);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(98, 23);
+            this.button2.TabIndex = 7;
+            this.button2.Text = "Очистить";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
-            // label3
+            // display
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(110, 64);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(21, 13);
-            this.label3.TabIndex = 10;
-            this.label3.Text = "Off";
-            this.label3.Click += new System.EventHandler(this.label3_Click);
+            this.display.BackColor = System.Drawing.SystemColors.ButtonFace;
+            this.display.Location = new System.Drawing.Point(12, 9);
+            this.display.MinimumSize = new System.Drawing.Size(255, 255);
+            this.display.Name = "display";
+            this.display.Size = new System.Drawing.Size(765, 765);
+            this.display.TabIndex = 11;
+            this.display.MouseDown += new System.Windows.Forms.MouseEventHandler(this.display_MouseDown);
+            this.display.MouseMove += new System.Windows.Forms.MouseEventHandler(this.display_MouseMove);
             // 
             // Form1
             // 
@@ -180,8 +176,8 @@
             this.AutoSize = true;
             this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.ClientSize = new System.Drawing.Size(998, 786);
-            this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.display);
+            this.Controls.Add(this.groupBox1);
             this.Name = "Form1";
             this.Text = "GPSTracker";
             this.groupBox1.ResumeLayout(false);
@@ -191,8 +187,6 @@
         }
 
         #endregion
-
-        private System.Windows.Forms.GroupBox display;
         private System.Windows.Forms.ComboBox z_layer_combo_box;
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.Button button1;
@@ -203,6 +197,8 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Panel display;
+        private System.Windows.Forms.ToolTip toolTip1;
     }
 }
 

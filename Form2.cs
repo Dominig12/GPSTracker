@@ -22,5 +22,10 @@ namespace GPSTracker
             }
             return screen;
         }
+
+        private void groupBox1_Enter(object sender, System.EventArgs e)
+        {
+
+        }
     }
 }

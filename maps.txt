@@ -1,0 +1,2 @@
+boxstation.dmm=2
+asteroid.dmm=6
