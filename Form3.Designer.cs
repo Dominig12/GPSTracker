@@ -69,6 +69,7 @@
             this.Controls.Add(this.panel1);
             this.Name = "Form3";
             this.Text = "Уточнение координат";
+            this.Load += new System.EventHandler(this.Form3_Load);
             this.ResumeLayout(false);
 
         }

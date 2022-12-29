@@ -1,8 +1,8 @@
-/turf/simulated/wall
+/turf/simulated/wall=#f6b26b
 /turf/simulated/mineral
-/obj/structure/window
-/obj/structure/grille
-/obj/structure/table
-/obj/machinery/door
+/obj/structure/window=#6fa8dc
+/obj/structure/grille=#c2c2c2
+/obj/structure/table=#6a329f
+/obj/machinery/door=#cc0000
 /obj/machinery/computer
 /obj/machinery/vending

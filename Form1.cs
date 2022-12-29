@@ -2,20 +2,24 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Security.Policy;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using Tesseract;
+using static System.Net.Mime.MediaTypeNames;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace GPSTracker
 {
     public partial class Form1 : Form
     {
-        public SortedList<int, List<KeyValuePair<int, int>>> z_layers_player = new SortedList<int, List<KeyValuePair<int, int>>>();
-        public SortedList<int, List<KeyValuePair<int, int>>> z_layers_gps = new SortedList<int, List<KeyValuePair<int, int>>>();
-        public SortedList<int, List<KeyValuePair<int, int>>> z_layers_map = new SortedList<int, List<KeyValuePair<int, int>>>();
+        public SortedList<int, SortedList<string, string>> z_layers_player = new SortedList<int, SortedList<string, string>>();
+        public SortedList<int, SortedList<string, string>> z_layers_gps = new SortedList<int, SortedList<string, string>>();
+        public SortedList<int, SortedList<string, string>> z_layers_map = new SortedList<int, SortedList<string, string>>();
         public SortedList<int, GraphicsState> z_map = new SortedList<int, GraphicsState>();
         Graphics g = null;
 
@@ -54,10 +58,10 @@ namespace GPSTracker
             reader.Close();
         }
 
-        private void AddLayer(int index, SortedList<int, List<KeyValuePair<int, int>>> z_layers)
+        private void AddLayer(int index, SortedList<int, SortedList<string, string>> z_layers)
         {
             if(!z_layers.ContainsKey(index))
-                z_layers.Add(index, new List<KeyValuePair<int, int>>());
+                z_layers.Add(index, new SortedList<string, string>());
             if (!z_layer_combo_box.Items.Contains(index))
             {
                 z_layer_combo_box.Items.Add(index);
@@ -65,12 +69,17 @@ namespace GPSTracker
             }
         }
 
-        private void UpdateValues(int x, int y, int z, SortedList<int, List<KeyValuePair<int, int>>> z_layers)
+        private void UpdateValues(int x, int y, int z, string color, SortedList<int, SortedList<string, string>> z_layers)
         {
             if (!z_layers.ContainsKey(z))
                 AddLayer(z, z_layers);
 
-            z_layers[z].Add(new KeyValuePair<int, int>(x, y));
+            string key = String.Format("{0}:{1}", x, y);
+
+            if (!z_layers[z].ContainsKey(key))
+                z_layers[z].Add(key, color);
+
+            z_layers[z][key] = color;
         }
 
         private void UpdateGPSValues()
@@ -78,7 +87,7 @@ namespace GPSTracker
             List<int[]> coords_array_gps = GetGpsData();
             foreach (int[] coords_int in coords_array_gps)
             {
-                UpdateValues(coords_int[0], coords_int[1], coords_int[2], z_layers_gps);
+                UpdateValues(coords_int[0], coords_int[1], coords_int[2], "#FF0000", z_layers_gps);
             }
         }
 
@@ -97,10 +106,10 @@ namespace GPSTracker
 
             foreach (string maps in mapsList)
             {
-                List<int[]> coords_array_map = GetMapData(maps);
-                foreach (int[] coords_int in coords_array_map)
+                List<KeyValuePair<int[], string>> coords_array_map = GetMapData(maps);
+                foreach (KeyValuePair<int[], string> coords_int in coords_array_map)
                 {
-                    UpdateValues(coords_int[0], coords_int[1], coords_int[2], z_layers_map);
+                    UpdateValues(coords_int.Key[0], coords_int.Key[1], coords_int.Key[2], coords_int.Value, z_layers_map);
                 }
             }
         }
@@ -113,7 +122,7 @@ namespace GPSTracker
             if (!z_map.ContainsKey(z) || z_map[z] == null)
             {
                 g.Clear(Color.Black);
-                PaintPoints(g, z_layers_map, new SolidBrush(Color.DarkKhaki), 0.5, false);
+                PaintPoints(g, z_layers_map, 0.5, false);
                 GridDraw(g);
                 if (!z_map.ContainsKey(z))
                     z_map.Add(z, g.Save());
@@ -122,12 +131,12 @@ namespace GPSTracker
             }
             else
                 g.Restore(z_map[z]);
-            PaintPoints(g, z_layers_player, new SolidBrush(Color.White), 0.5);
-            PaintPoints(g, z_layers_gps, new SolidBrush(Color.Red), 0.5, false);
+            PaintPoints(g, z_layers_player, 0.5);
+            PaintPoints(g, z_layers_gps, 0.5, false);
             //Refresh();
         }
 
-        public void PaintPoints(Graphics g, SortedList<int, List<KeyValuePair<int, int>>> z_layers, Brush color, double coef_scale = 1, bool connect = true)
+        public void PaintPoints(Graphics g, SortedList<int, SortedList<string, string>> z_layers, double coef_scale = 1, bool connect = true)
         {
             if (!Convert.ToBoolean(z_layer_combo_box.SelectedItem))
                 return;
@@ -148,13 +157,19 @@ namespace GPSTracker
                 -1,
             };
 
-            foreach (KeyValuePair<int, int> coords in z_layers[z])
+            foreach (string coords in z_layers[z].Keys)
             {
+                int[] coords_int = Array.ConvertAll(coords.Split(':'), int.Parse);
+
                 int[] point = new int[2]
                 {
-                    (coords.Key * coef_X),
-                    (height - (coords.Value * coef_y))
+                    (coords_int[0] * coef_X),
+                    (height - (coords_int[1] * coef_y))
                 };
+
+                Color clr = ColorTranslator.FromHtml(z_layers[z][coords]);
+
+                Brush color = new SolidBrush(clr);
 
                 g.FillRectangle(color, point[0], point[1], float.Parse((coef_X * coef_scale).ToString()), float.Parse((coef_y * coef_scale).ToString()));
                 if (last[0] != -1 && last[1] != -1 && connect)
@@ -185,7 +200,7 @@ namespace GPSTracker
             int[] coords = GetPlayerGPSData();
             if (coords.Length < 3 || coords[0] == -1)
                 return;
-            UpdateValues(coords[0], coords[1], coords[2], z_layers_player);
+            UpdateValues(coords[0], coords[1], coords[2], "#ffffff", z_layers_player);
             z_layer_combo_box.SelectedItem = coords[2];
             //z_map[Convert.ToInt32(z_layer_combo_box.SelectedItem)] = null;
             display_Paint();
@@ -244,9 +259,9 @@ namespace GPSTracker
             return coords_array;
         }
 
-        private List<int[]> GetMapData(string map)
+        private List<KeyValuePair<int[], string>> GetMapData(string map)
         {
-            List<int[]> coords_map = new List<int[]>();
+            List<KeyValuePair<int[], string>> coords_map = new List<KeyValuePair<int[], string>>();
             StreamReader reader_maps = new StreamReader("maps.txt");
             string z_level = "";
             do
@@ -263,14 +278,18 @@ namespace GPSTracker
                 return coords_map;
 
             StreamReader reader = new StreamReader(map);
-            List<string> tags_vision = new List<string>();
+            List<KeyValuePair<string, string>> tags_vision = new List<KeyValuePair<string, string>>();
             string line = "";
 
             StreamReader reader_objects = new StreamReader("objects_vision.txt");
-            List<string> vision_obj = new List<string>();
+            List<KeyValuePair<string, string>> vision_obj = new List<KeyValuePair<string, string>>();
             while ((line = reader_objects.ReadLine()) != null)
             {
-                vision_obj.Add(line);
+                string[] line_obj = line.Split('=');
+                if(line_obj.Length <= 1)
+                    vision_obj.Add(new KeyValuePair<string, string>(line_obj[0], "#f6b26b"));
+                else
+                    vision_obj.Add(new KeyValuePair<string, string>(line_obj[0], line_obj[1]));
             }
             reader_objects.Close();
 
@@ -297,11 +316,11 @@ namespace GPSTracker
                     if (success)
                         continue;
 
-                    foreach (string obj in vision_obj)
+                    foreach (KeyValuePair<string, string> obj in vision_obj)
                     {
-                        if (line.Contains(obj))
+                        if (line.Contains(obj.Key))
                         {
-                            tags_vision.Add(tag);
+                            tags_vision.Add(new KeyValuePair<string, string>(tag, obj.Value));
                             success = true;
                             break;
                         }
@@ -329,11 +348,11 @@ namespace GPSTracker
 
                 for (int o = 1; o <= 255; o++)
                 {
-                    foreach(string tag in tags_vision)
+                    foreach(KeyValuePair<string, string> tag in tags_vision)
                     {
-                        if (line == tag)
+                        if (line == tag.Key)
                         {
-                            coords_map.Add(new int[3] { i, 257 - o, Convert.ToInt32(z_level) });
+                            coords_map.Add(new KeyValuePair<int[], string>(new int[3] { i, 257 - o, Convert.ToInt32(z_level) }, tag.Value));
                         }
                     }
                     line = reader.ReadLine();

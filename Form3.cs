@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -14,9 +15,9 @@ namespace GPSTracker
     public partial class Form3 : Form
     {
         public Form1 form;
-        public SortedList<int, List<KeyValuePair<int, int>>> z_layers_player = new SortedList<int, List<KeyValuePair<int, int>>>();
-        public SortedList<int, List<KeyValuePair<int, int>>> z_layers_gps = new SortedList<int, List<KeyValuePair<int, int>>>();
-        public SortedList<int, List<KeyValuePair<int, int>>> z_layers_map = new SortedList<int, List<KeyValuePair<int, int>>>();
+        public SortedList<int, SortedList<string, string>> z_layers_player = new SortedList<int, SortedList<string, string>>();
+        public SortedList<int, SortedList<string, string>> z_layers_gps = new SortedList<int, SortedList<string, string>>();
+        public SortedList<int, SortedList<string, string>> z_layers_map = new SortedList<int, SortedList<string, string>>();
         public KeyValuePair<int, KeyValuePair<int, int>> initial_coords;
         public Form3()
         {
@@ -39,9 +40,9 @@ namespace GPSTracker
         {
             Graphics g = panel1.CreateGraphics();
             g.Clear(Color.Black);
-            PaintPoints(g, z_layers_map, new SolidBrush(Color.DarkKhaki), 1, false);
-            PaintPoints(g, z_layers_player, new SolidBrush(Color.White), 0.5);
-            PaintPoints(g, z_layers_gps, new SolidBrush(Color.Red), 1, false);
+            PaintPoints(g, z_layers_map, 1, false);
+            PaintPoints(g, z_layers_player, 0.5);
+            PaintPoints(g, z_layers_gps, 1, false);
             float coef = panel1.Width / 11;
             for (float i = 1; i < panel1.Width; i += coef)
             {
@@ -49,7 +50,7 @@ namespace GPSTracker
                 g.DrawLine(new Pen(new SolidBrush(Color.DarkGreen)), i, 0, i, panel1.Width);
             }
         }
-        public void PaintPoints(Graphics g, SortedList<int, List<KeyValuePair<int, int>>> z_layers, Brush color, double coef_scale = 1, bool connect = true)
+        public void PaintPoints(Graphics g, SortedList<int, SortedList<string, string>> z_layers, double coef_scale = 1, bool connect = true)
         {
 
             int z = Convert.ToInt32(initial_coords.Key);
@@ -67,27 +68,29 @@ namespace GPSTracker
                 -1,
                 -1,
             };
-
-            for(int i = -5; i <= 5; i++)
+            for (int i = -5; i <= 5; i++)
             {
                 for (int o = -5; o <= 5; o++)
                 {
-                    KeyValuePair<int, int> coords = new KeyValuePair<int, int>(initial_coords.Value.Key + i, initial_coords.Value.Value + o);
-                    if (!z_layers[z].Contains(coords))
-                        continue;
-
-                    coords = new KeyValuePair<int, int>(5 + i, 6 + o);
-
-                    int[] point = new int[2]
+                    string key = String.Format("{0}:{1}", initial_coords.Value.Key + i, initial_coords.Value.Value + o);
+                    if (z_layers[z].Keys.Contains(key))
                     {
-                        (coords.Key * coef_X),
-                        (height - (coords.Value * coef_y))
-                    };
-                    g.FillRectangle(color, point[0], point[1], float.Parse((coef_X * coef_scale).ToString()), float.Parse((coef_y * coef_scale).ToString()));
-                    if (last[0] != -1 && last[1] != -1 && connect)
-                        g.DrawLine(new Pen(color), last[0], last[1], point[0], point[1]);
+                        int[] point = new int[2]
+                        {
+                            ((i + 5) * coef_X),
+                            (height - ((o + 5) * coef_y))
+                        };
 
-                    last = point;
+                        Color clr = ColorTranslator.FromHtml(z_layers[z][key]);
+
+                        Brush color = new SolidBrush(clr);
+
+                        g.FillRectangle(color, point[0], point[1], float.Parse((coef_X * coef_scale).ToString()), float.Parse((coef_y * coef_scale).ToString()));
+                        if (last[0] != -1 && last[1] != -1 && connect)
+                            g.DrawLine(new Pen(color), last[0], last[1], point[0], point[1]);
+
+                        last = point;
+                    }
                 }
             }
 
@@ -128,6 +131,11 @@ namespace GPSTracker
             int z = Convert.ToInt32(initial_coords.Key);
             string coords_text = String.Format("{0} {1} {2}", x, y, z);
             toolTip1.SetToolTip(panel1, coords_text);
+        }
+
+        private void Form3_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }
