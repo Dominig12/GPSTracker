@@ -78,7 +78,7 @@ namespace GPSTracker
                         int[] point = new int[2]
                         {
                             ((i + 5) * coef_X),
-                            (height - ((o + 5) * coef_y))
+                            (height - ((o + 6) * coef_y))
                         };
 
                         Color clr = ColorTranslator.FromHtml(z_layers[z][key]);
