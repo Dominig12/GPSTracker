@@ -1,8 +1,11 @@
-/turf/simulated/wall=#f6b26b
+/turf/simulated/floor=#131313
+/turf/simulated/wall=#ff9c00
 /turf/simulated/mineral
-/obj/structure/window=#6fa8dc
-/obj/structure/grille=#c2c2c2
-/obj/structure/table=#6a329f
-/obj/machinery/door=#cc0000
-/obj/machinery/computer
+/obj/structure/window=#b2daff
+/obj/structure/grille=#434343
+/obj/structure/table=#dadada
+/obj/machinery/door=#ff0085
+/obj/machinery/computer=#b1ff00
 /obj/machinery/vending
+/area/shuttle/escape/station=#ead1dc
+/turf/space=#08151e

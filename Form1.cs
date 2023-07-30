@@ -2,16 +2,11 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
-using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Security.Policy;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
-using Tesseract;
-using static System.Net.Mime.MediaTypeNames;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using Newtonsoft.Json;
+
 
 namespace GPSTracker
 {
@@ -23,14 +18,11 @@ namespace GPSTracker
         public SortedList<int, GraphicsState> z_map = new SortedList<int, GraphicsState>();
         Graphics g = null;
 
-        Form2 screnner;
-
         bool active = false;
 
         public Form1()
         {
             InitializeComponent();
-            screnner = new Form2();
             g = display.CreateGraphics();
             UpdateMapValues();
 
@@ -193,7 +185,6 @@ namespace GPSTracker
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            screnner.Show();
             UpdateGPSValues();
             if (!active)
                 return;
@@ -209,6 +200,15 @@ namespace GPSTracker
         private List<int[]> GetGpsData()
         {
             List<string> coords_gps_list = ParseCoordsList(textBox1.Text);
+            string GPSData = File.ReadAllText("GPSData.txt");
+            PositionGps positionGps = JsonConvert.DeserializeObject<PositionGps>(GPSData);
+            foreach (string gpsOther in positionGps.OtherGps)
+            {
+                string gpsOtherPrepare = gpsOther.Replace("(", "");
+                gpsOtherPrepare = gpsOtherPrepare.Replace(")", "");
+                gpsOtherPrepare = gpsOtherPrepare.Replace(",", "");
+                coords_gps_list.Add(gpsOtherPrepare);
+            }
             List<int[]> coords_array = new List<int[]>();
 
             foreach (string coords_string in coords_gps_list)
@@ -235,12 +235,14 @@ namespace GPSTracker
 
         private int[] GetPlayerGPSData()
         {
-            Bitmap image = screnner.ScreenShot();
-            TesseractEngine tes = new TesseractEngine(@"./tesseractdata", "eng");
-            var res = tes.Process(image);
-            string coords = ParseCoords(res.GetText());
+            string GPSData = File.ReadAllText("GPSData.txt");
+            PositionGps positionGps = JsonConvert.DeserializeObject<PositionGps>(GPSData);
+            string coords = positionGps.Position;
+            string gpsOtherPrepare = coords.Replace("(", "");
+            gpsOtherPrepare = gpsOtherPrepare.Replace(")", "");
+            gpsOtherPrepare = gpsOtherPrepare.Replace(",", "");
 
-            string[] coords_array_string = coords.Split(' ');
+            string[] coords_array_string = gpsOtherPrepare.Split(' ');
 
             if (coords_array_string.Length < 3)
                 return new int[3]
@@ -473,5 +475,11 @@ namespace GPSTracker
         {
             
         }
+    }
+    public class PositionGps
+    {
+        public string Position { get; set; }
+        public string SavedPosition { get; set; }
+        public List<string> OtherGps { get; set; }
     }
 }
