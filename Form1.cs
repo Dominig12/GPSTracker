@@ -77,6 +77,7 @@ namespace GPSTracker
         private void UpdateGPSValues()
         {
             List<int[]> coords_array_gps = GetGpsData();
+            z_layers_gps.Clear();
             foreach (int[] coords_int in coords_array_gps)
             {
                 UpdateValues(coords_int[0], coords_int[1], coords_int[2], "#FF0000", z_layers_gps);
@@ -192,7 +193,7 @@ namespace GPSTracker
             if (coords.Length < 3 || coords[0] == -1)
                 return;
             UpdateValues(coords[0], coords[1], coords[2], "#ffffff", z_layers_player);
-            z_layer_combo_box.SelectedItem = coords[2];
+            //z_layer_combo_box.SelectedItem = coords[2];
             //z_map[Convert.ToInt32(z_layer_combo_box.SelectedItem)] = null;
             display_Paint();
         }
@@ -204,10 +205,13 @@ namespace GPSTracker
             PositionGps positionGps = JsonConvert.DeserializeObject<PositionGps>(GPSData);
             foreach (string gpsOther in positionGps.OtherGps)
             {
-                string gpsOtherPrepare = gpsOther.Replace("(", "");
-                gpsOtherPrepare = gpsOtherPrepare.Replace(")", "");
-                gpsOtherPrepare = gpsOtherPrepare.Replace(",", "");
-                coords_gps_list.Add(gpsOtherPrepare);
+                Regex regex = new Regex(@"\D+", RegexOptions.Compiled);
+                string result = regex.Replace(gpsOther, " ");
+                regex = new Regex(@"^\s", RegexOptions.Compiled);
+                result = regex.Replace(result, "");
+                regex = new Regex(@"\s$", RegexOptions.Compiled);
+                result = regex.Replace(result, "");
+                coords_gps_list.Add(result);
             }
             List<int[]> coords_array = new List<int[]>();
 
@@ -238,11 +242,14 @@ namespace GPSTracker
             string GPSData = File.ReadAllText("GPSData.txt");
             PositionGps positionGps = JsonConvert.DeserializeObject<PositionGps>(GPSData);
             string coords = positionGps.Position;
-            string gpsOtherPrepare = coords.Replace("(", "");
-            gpsOtherPrepare = gpsOtherPrepare.Replace(")", "");
-            gpsOtherPrepare = gpsOtherPrepare.Replace(",", "");
+            Regex regex = new Regex(@"\D+", RegexOptions.Compiled);
+            string result = regex.Replace(coords, " ");
+            regex = new Regex(@"^\s", RegexOptions.Compiled);
+            result = regex.Replace(result, "");
+            regex = new Regex(@"\s$", RegexOptions.Compiled);
+            result = regex.Replace(result, "");
 
-            string[] coords_array_string = gpsOtherPrepare.Split(' ');
+            string[] coords_array_string = result.Split(' ');
 
             if (coords_array_string.Length < 3)
                 return new int[3]
