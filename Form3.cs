@@ -14,16 +14,48 @@ namespace GPSTracker
 {
     public partial class Form3 : Form
     {
-        public Form1 form;
-        public SortedList<int, SortedList<string, string>> z_layers_player = new SortedList<int, SortedList<string, string>>();
-        public SortedList<int, SortedList<string, string>> z_layers_gps = new SortedList<int, SortedList<string, string>>();
-        public SortedList<int, SortedList<string, string>> z_layers_map = new SortedList<int, SortedList<string, string>>();
-        public KeyValuePair<int, KeyValuePair<int, int>> initial_coords;
+        public Map Map;
+        public MapPoint InitialCoords;
+        private TransparentPanel _panel;
+        private PictureBox _map;
         public Form3()
         {
             InitializeComponent();
-            PaintPanel();
             toolTip1.ShowAlways = true;
+            CreateComponents();
+            Shown += (sender, args) =>
+            {
+                Map.InitStaticMap(_panel.Width, _panel.Height, 1, 1);
+                _map.Image = Map.GetStaticMap();
+            };
+        }
+        
+        private void CreateComponents()
+        {
+            _map = new PictureBox
+            {
+                Size = new Size(330, 330),
+                Location = new Point(10, 10),
+                SizeMode = PictureBoxSizeMode.Zoom,
+            };
+            
+            // Прозрачная панель
+            _panel = new TransparentPanel
+            {
+                Size = _map.Size,
+                Location = _map.Location,
+                Parent = _map.Parent,
+                BackColor = Color.Transparent,
+            };
+
+            _panel.MouseMove += panel1_MouseMove;
+            _panel.MouseDown += panel1_MouseDown;
+    
+            // Добавление на форму
+            Controls.Add(_map);
+            Controls.Add(_panel);
+            
+            _panel.BringToFront();
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -33,89 +65,15 @@ namespace GPSTracker
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            PaintPanel();
-        }
-
-        private void PaintPanel()
-        {
-            Graphics g = panel1.CreateGraphics();
-            g.Clear(Color.Black);
-            PaintPoints(g, z_layers_map, 1, false);
-            PaintPoints(g, z_layers_player, 0.5);
-            PaintPoints(g, z_layers_gps, 1, false);
-            float coef = panel1.Width / 11;
-            for (float i = 1; i < panel1.Width; i += coef)
-            {
-                g.DrawLine(new Pen(new SolidBrush(Color.DarkGreen)), 0, i, panel1.Width, i);
-                g.DrawLine(new Pen(new SolidBrush(Color.DarkGreen)), i, 0, i, panel1.Width);
-            }
-        }
-        public void PaintPoints(Graphics g, SortedList<int, SortedList<string, string>> z_layers, double coef_scale = 1, bool connect = true)
-        {
-
-            int z = Convert.ToInt32(initial_coords.Key);
-
-            if (!z_layers.ContainsKey(z))
-                return;
-
-            int width = panel1.Width;
-            int height = panel1.Height;
-            int coef_X = width / 11;
-            int coef_y = height / 11;
-
-            int[] last = new int[2]
-            {
-                -1,
-                -1,
-            };
-            for (int i = -5; i <= 5; i++)
-            {
-                for (int o = -5; o <= 5; o++)
-                {
-                    string key = String.Format("{0}:{1}", initial_coords.Value.Key + i, initial_coords.Value.Value + o);
-                    if (z_layers[z].Keys.Contains(key))
-                    {
-                        int[] point = new int[2]
-                        {
-                            ((i + 5) * coef_X),
-                            (height - ((o + 6) * coef_y))
-                        };
-
-                        Color clr = ColorTranslator.FromHtml(z_layers[z][key]);
-
-                        Brush color = new SolidBrush(clr);
-
-                        g.FillRectangle(color, point[0], point[1], float.Parse((coef_X * coef_scale).ToString()), float.Parse((coef_y * coef_scale).ToString()));
-                        if (last[0] != -1 && last[1] != -1 && connect)
-                            g.DrawLine(new Pen(color), last[0], last[1], point[0], point[1]);
-
-                        last = point;
-                    }
-                }
-            }
-
-            /*foreach (KeyValuePair<int, int> coords in z_layers[z])
-            {
-                int[] point = new int[2]
-                {
-                    (coords.Key * coef_X),
-                    (height - (coords.Value * coef_y))
-                };
-
-                g.FillRectangle(color, point[0], point[1], float.Parse((coef_X * coef_scale).ToString()), float.Parse((coef_y * coef_scale).ToString()));
-                if (last[0] != -1 && last[1] != -1 && connect)
-                    g.DrawLine(new Pen(color), last[0], last[1], point[0], point[1]);
-
-                last = point;
-            }*/
+            _panel.Invalidate();
         }
 
         private void panel1_MouseDown(object sender, MouseEventArgs e)
         {
-            float coef = panel1.Width / 11;
-            int x = initial_coords.Value.Key - 5 + Convert.ToInt32(Math.Round((e.X - coef / 2) / coef, MidpointRounding.ToEven));
-            int y = initial_coords.Value.Value + 5 - Convert.ToInt32(Math.Round((e.Y - coef / 2) / coef, MidpointRounding.ToEven));
-            int z = Convert.ToInt32(initial_coords.Key);
+            float coef = _panel.Width / 11;
+            int x = InitialCoords.X - 5 + Convert.ToInt32(Math.Round((e.X - coef / 2) / coef, MidpointRounding.ToEven));
+            int y = InitialCoords.Y + 5 - Convert.ToInt32(Math.Round((e.Y - coef / 2) / coef, MidpointRounding.ToEven));
+            int z = Convert.ToInt32(InitialCoords.Z);
             string coords = String.Format("{0} {1} {2}", x, y, z);
             StreamWriter writer = new StreamWriter(Config.PathOpenWormhole, false);
             writer.WriteLine(coords);
@@ -125,12 +83,12 @@ namespace GPSTracker
 
         private void panel1_MouseMove(object sender, MouseEventArgs e)
         {
-            float coef = panel1.Width / 11;
-            int x = initial_coords.Value.Key - 5 + Convert.ToInt32(Math.Round((e.X - coef / 2) / coef, MidpointRounding.ToEven));
-            int y = initial_coords.Value.Value + 5 - Convert.ToInt32(Math.Round((e.Y - coef / 2) / coef, MidpointRounding.ToEven));
-            int z = Convert.ToInt32(initial_coords.Key);
+            float coef = _panel.Width / 11;
+            int x = InitialCoords.X - 5 + Convert.ToInt32(Math.Round((e.X - coef / 2) / coef, MidpointRounding.ToEven));
+            int y = InitialCoords.Y + 5 - Convert.ToInt32(Math.Round((e.Y - coef / 2) / coef, MidpointRounding.ToEven));
+            int z = Convert.ToInt32(InitialCoords.Z);
             string coords_text = String.Format("{0} {1} {2}", x, y, z);
-            toolTip1.SetToolTip(panel1, coords_text);
+            toolTip1.SetToolTip(_panel, coords_text);
         }
 
         private void Form3_Load(object sender, EventArgs e)

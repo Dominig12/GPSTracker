@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
@@ -7,12 +8,70 @@ using System.Windows.Forms;
 namespace GPSTracker
 {
 
+    public class Map
+    {
+        private List<MapPoint> MapPoints { get; set; }
+        private Bitmap _staticMap;
+        private int Width { get; set; } = 256;
+        private int Height { get; set; } = 256;
+
+        public Map(List<MapPoint> points, int width = 255, int height = 255)
+        {
+            MapPoints = points;
+            Width = width;
+            Height = height;
+        }
+        
+        public void InitStaticMap(int mapWidth, int mapHeight, int stepGrid = 15, float scale = 0.5f)
+        {
+            _staticMap = new Bitmap(width : mapWidth, height : mapHeight);
+        
+            using ( Graphics g = Graphics.FromImage( image : _staticMap ) )
+            {
+                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+                g.Clear(color : Color.Black);
+                float coef = mapWidth / Width;
+                for (float i = mapWidth; i >= 0; i -= coef * stepGrid)
+                {
+                    g.DrawLine(pen : new Pen(brush : new SolidBrush(color : Color.DarkGreen)), x1 : 0, y1 : i, x2 : mapWidth, y2 : i);
+                    g.DrawString(s : (Width + 1 - (i / coef)).ToString(), font : new Font(familyName : "Arial", emSize : 5), brush : new SolidBrush(color : Color.White), x : 0, y : i);
+                    g.DrawLine(pen : new Pen(brush : new SolidBrush(color : Color.DarkGreen)), x1 : i, y1 : 0, x2 : i, y2 : mapWidth);
+                    g.DrawString(s : (i / coef).ToString(), font : new Font(familyName : "Arial", emSize : 5), brush : new SolidBrush(color : Color.White), x : i, y : 0);
+                }
+                
+                int coefX = mapWidth / Width;
+                int coefY = mapHeight / Height;
+            
+                foreach (MapPoint point in MapPoints)
+                {
+                    using (var brush = new SolidBrush(color : ColorTranslator.FromHtml(htmlColor : point.ColorHex)))
+                    {
+                        int x = point.GetScaledX(scale: coefX);
+                        int y = point.GetScaledY(scale: coefY, Height);
+                        g.FillRectangle(brush : brush, x : x, y : y, width : coefX * scale, height : coefY * scale);
+                    }
+                }
+            }
+        }
+
+        public Bitmap GetStaticMap()
+        {
+            return _staticMap;
+        }
+
+        public List<MapPoint> GetPoints()
+        {
+            return MapPoints;
+        }
+    }
     public class MapPoint
     {
         public int X { get; set; }
         public int Y { get; set; }
         public int Z { get; set; }
         public string ColorHex { get; set; }
+        
+        public string Tag { get; set; }
 
         public int GetScaledX(
             int scale )
@@ -21,9 +80,9 @@ namespace GPSTracker
         }
         
         public int GetScaledY(
-            int scale )
+            int scale, int height = 255 )
         {
-            return Y * scale;
+            return (height - Y + 1) * scale;
         }
 
     }
