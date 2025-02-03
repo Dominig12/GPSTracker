@@ -14,6 +14,7 @@ namespace GPSTracker
 {
     public partial class Form3 : Form
     {
+        public Form1 Form;
         public Map Map;
         public MapPoint InitialCoords;
         private TransparentPanel _panel;
@@ -50,6 +51,7 @@ namespace GPSTracker
 
             _panel.MouseMove += panel1_MouseMove;
             _panel.MouseDown += panel1_MouseDown;
+            _panel.Paint += display_Paint;
     
             // Добавление на форму
             Controls.Add(_map);
@@ -65,12 +67,75 @@ namespace GPSTracker
 
         private void timer1_Tick(object sender, EventArgs e)
         {
+            _map.Invalidate();
             _panel.Invalidate();
+        }
+        
+        private void display_Paint(object sender, PaintEventArgs e)
+        {
+            MapPoint nullPoint = new MapPoint()
+            {
+                X = InitialCoords.X - 5,
+                Y = InitialCoords.Y - 6,
+                Z = InitialCoords.Z
+            };
+            
+            if (Form.PlayerGps == null)
+            {
+                return;
+            }
+            
+            MapPoint pointPlayer = new MapPoint()
+            {
+                X = Form.PlayerGps.X - nullPoint.X,
+                Y = Form.PlayerGps.Y + 1 - nullPoint.Y,
+                Z = Form.PlayerGps.Z,
+                Tag = Form.PlayerGps.Tag
+            };
+            if (Form.PlayerGps.Z == InitialCoords.Z)
+            {
+                // Отрисовка игрока
+                Map.DrawPoint(
+                    _map.Width,
+                    _map.Height,
+                    g : e.Graphics,
+                    pointPlayer,
+                    entityColor : Color.Red,
+                    textBrush : Brushes.White
+                );
+            }
+            
+            Form.SignalsGps ??= new List<MapPoint>();
+            
+            foreach (MapPoint signalsGps in Form.SignalsGps)
+            {
+                if (signalsGps.Z != InitialCoords.Z)
+                {
+                    continue;
+                }
+                
+                MapPoint point = new MapPoint()
+                {
+                    X = signalsGps.X - nullPoint.X,
+                    Y = signalsGps.Y + 1 - nullPoint.Y,
+                    Z = signalsGps.Z,
+                    Tag = signalsGps.Tag
+                };
+                
+                Map.DrawPoint(
+                    _map.Width,
+                    _map.Height,
+                    g : e.Graphics,
+                    point,
+                    entityColor : Color.Red,
+                    textBrush : Brushes.White
+                );
+            }
         }
 
         private void panel1_MouseDown(object sender, MouseEventArgs e)
         {
-            float coef = _panel.Width / 11;
+            float coef = _panel.Width / 11f;
             int x = InitialCoords.X - 5 + Convert.ToInt32(Math.Round((e.X - coef / 2) / coef, MidpointRounding.ToEven));
             int y = InitialCoords.Y + 5 - Convert.ToInt32(Math.Round((e.Y - coef / 2) / coef, MidpointRounding.ToEven));
             int z = Convert.ToInt32(InitialCoords.Z);
@@ -83,7 +148,7 @@ namespace GPSTracker
 
         private void panel1_MouseMove(object sender, MouseEventArgs e)
         {
-            float coef = _panel.Width / 11;
+            float coef = _panel.Width / 11f;
             int x = InitialCoords.X - 5 + Convert.ToInt32(Math.Round((e.X - coef / 2) / coef, MidpointRounding.ToEven));
             int y = InitialCoords.Y + 5 - Convert.ToInt32(Math.Round((e.Y - coef / 2) / coef, MidpointRounding.ToEven));
             int z = Convert.ToInt32(InitialCoords.Z);

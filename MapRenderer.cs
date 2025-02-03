@@ -12,10 +12,10 @@ namespace GPSTracker
     {
         private List<MapPoint> MapPoints { get; set; }
         private Bitmap _staticMap;
-        private float Width { get; set; } = 256;
-        private float Height { get; set; } = 256;
+        private float Width { get; set; }
+        private float Height { get; set; }
 
-        public Map(List<MapPoint> points, int width = 255, int height = 255)
+        public Map(List<MapPoint> points, float width = 255f, float height = 255f)
         {
             MapPoints = points;
             Width = width;
@@ -54,6 +54,34 @@ namespace GPSTracker
             }
         }
 
+        public void DrawPoint(
+            int mapWidth, 
+            int mapHeight,
+            Graphics g, 
+            MapPoint point,
+            Color entityColor, 
+            Brush textBrush)
+        {
+            float coefX = mapWidth / Width;
+            float coefY = mapHeight / Height;
+            
+            // Рисуем маркер
+            using (var brush = new SolidBrush(color : entityColor))
+            {
+                g.FillRectangle(brush : brush, x : point.GetScaledX(coefX), y : point.GetScaledY(coefY, Height), width : coefX * 1, height : coefY * 1);
+            }
+
+            // Рисуем текст
+            SizeF textSize = g.MeasureString(text : point.Tag, font : SystemFonts.CaptionFont);
+            g.DrawString(
+                s : point.Tag,
+                font : SystemFonts.CaptionFont,
+                brush : textBrush,
+                x : point.GetScaledX(coefX) - textSize.Width / 2,
+                y : point.GetScaledY(coefY, Height) - textSize.Height
+            );
+        }
+
         public Bitmap GetStaticMap()
         {
             return _staticMap;
@@ -80,9 +108,9 @@ namespace GPSTracker
         }
         
         public float GetScaledY(
-            float scale, float height = 255 )
+            float scale, float height = 255f )
         {
-            return (height - Y + 1) * scale;
+            return (height - Y) * scale;
         }
 
     }

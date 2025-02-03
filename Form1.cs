@@ -17,8 +17,8 @@ namespace GPSTracker
         private TransparentPanel _panel;
         private PictureBox _map;
         private int _selectedZ;
-        private MapPoint PlayerGps;
-        private List<MapPoint> SignalsGps;
+        public MapPoint PlayerGps;
+        public List<MapPoint> SignalsGps;
 
         public Form1()
         {
@@ -189,17 +189,21 @@ namespace GPSTracker
                 return;
             }
 
+            MapPoint pointPlayer = new MapPoint()
+            {
+                X = PlayerGps.X,
+                Y = PlayerGps.Y + 1,
+                Z = PlayerGps.Z,
+                Tag = PlayerGps.Tag
+            };
             if (PlayerGps.Z == _selectedZ)
             {
                 // Отрисовка игрока
-                DrawEntity(
+                Maps[_selectedZ].DrawPoint(
+                    _map.Width,
+                    _map.Height,
                     g : e.Graphics,
-                    position : new[]
-                    {
-                        PlayerGps.X,
-                        PlayerGps.Y
-                    },
-                    tag : PlayerGps.Tag,
+                    pointPlayer,
                     entityColor : Color.Red,
                     textBrush : Brushes.White
                 );
@@ -209,47 +213,28 @@ namespace GPSTracker
 
             foreach (MapPoint signalsGps in SignalsGps)
             {
-                DrawEntity(
+                if (signalsGps.Z != _selectedZ)
+                {
+                    continue;
+                }
+                
+                MapPoint point = new MapPoint()
+                {
+                    X = signalsGps.X,
+                    Y = signalsGps.Y + 1,
+                    Z = signalsGps.Z,
+                    Tag = signalsGps.Tag
+                };
+                
+                Maps[_selectedZ].DrawPoint(
+                    _map.Width,
+                    _map.Height,
                     g : e.Graphics,
-                    position : new[]
-                    {
-                        signalsGps.X,
-                        signalsGps.Y
-                    },
-                    tag : signalsGps.Tag,
-                    entityColor : Color.Blue,
-                    textBrush : Brushes.Yellow
+                    point,
+                    entityColor : Color.Red,
+                    textBrush : Brushes.White
                 );
             }
-        }
-        
-        private void DrawEntity(
-            Graphics g, 
-            int[] position, 
-            string tag, 
-            Color entityColor, 
-            Brush textBrush)
-        {
-            int width = _panel.Width;
-            int height = _panel.Height;
-            int coefX = width / 255;
-            int coefY = height / 255;
-            
-            // Рисуем маркер
-            using (var brush = new SolidBrush(color : entityColor))
-            {
-                g.FillRectangle(brush : brush, x : position[0] * coefX, y : position[1] * coefY, width : coefX * 1, height : coefX * 1);
-            }
-
-            // Рисуем текст
-            SizeF textSize = g.MeasureString(text : tag, font : SystemFonts.CaptionFont);
-            g.DrawString(
-                s : tag,
-                font : SystemFonts.CaptionFont,
-                brush : textBrush,
-                x : position[0] * coefX - textSize.Width / 2,
-                y : position[1] * coefY - textSize.Height
-            );
         }
 
         private void timer1_Tick(object sender, EventArgs e)
@@ -324,12 +309,6 @@ namespace GPSTracker
             int y = Convert.ToInt32(value : 255f - (e.Y - coef / 2) / coef);
             int z = Convert.ToInt32(value : _selectedZ.ToString());
             Form3 form = new Form3();
-            form.InitialCoords = new MapPoint()
-            {
-                X = x,
-                Y = y,
-                Z = z
-            };
             MapPoint center = new MapPoint()
             {
                 X = x,
@@ -364,6 +343,7 @@ namespace GPSTracker
             }
             
             form.Map = new Map(deltaPoints, 11, 11);
+            form.Form = this;
             form.Show();
         }
 
