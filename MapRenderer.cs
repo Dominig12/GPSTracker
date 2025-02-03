@@ -12,8 +12,8 @@ namespace GPSTracker
     {
         private List<MapPoint> MapPoints { get; set; }
         private Bitmap _staticMap;
-        private int Width { get; set; } = 256;
-        private int Height { get; set; } = 256;
+        private float Width { get; set; } = 256;
+        private float Height { get; set; } = 256;
 
         public Map(List<MapPoint> points, int width = 255, int height = 255)
         {
@@ -39,15 +39,15 @@ namespace GPSTracker
                     g.DrawString(s : (i / coef).ToString(), font : new Font(familyName : "Arial", emSize : 5), brush : new SolidBrush(color : Color.White), x : i, y : 0);
                 }
                 
-                int coefX = mapWidth / Width;
-                int coefY = mapHeight / Height;
+                float coefX = mapWidth / Width;
+                float coefY = mapHeight / Height;
             
                 foreach (MapPoint point in MapPoints)
                 {
                     using (var brush = new SolidBrush(color : ColorTranslator.FromHtml(htmlColor : point.ColorHex)))
                     {
-                        int x = point.GetScaledX(scale: coefX);
-                        int y = point.GetScaledY(scale: coefY, Height);
+                        float x = point.GetScaledX(scale: coefX);
+                        float y = point.GetScaledY(scale: coefY, Height);
                         g.FillRectangle(brush : brush, x : x, y : y, width : coefX * scale, height : coefY * scale);
                     }
                 }
@@ -73,14 +73,14 @@ namespace GPSTracker
         
         public string Tag { get; set; }
 
-        public int GetScaledX(
-            int scale )
+        public float GetScaledX(
+            float scale )
         {
             return X * scale;
         }
         
-        public int GetScaledY(
-            int scale, int height = 255 )
+        public float GetScaledY(
+            float scale, float height = 255 )
         {
             return (height - Y + 1) * scale;
         }

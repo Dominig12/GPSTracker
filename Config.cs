@@ -11,6 +11,22 @@ namespace GPSTracker
         public static string PathGpsData { get; set; } = "GPSData.txt";
 
         public static string PathOpenWormhole { get; set; } = "../open_wormhole.txt";
+        
+        public static int Width { get; set; } = 900;
+        
+        public static int Height { get; set; } = 900;
+        
+        public static void RefreshConfigXml()
+        {
+            if (!System.IO.File.Exists("config.xml"))
+            {
+                Config.SaveConfig();
+            }
+            else
+            {
+                Config.LoadConfig();
+            }
+        }
 
         public static void SaveConfig()
         {
@@ -26,6 +42,14 @@ namespace GPSTracker
             XElement el1 = new XElement("PathOpenWormhole");
             el1.Value = PathOpenWormhole;
             element.Add(el1);
+            
+            XElement el4 = new XElement("Width");
+            el4.Value = Width.ToString();
+            element.Add(el4);
+            
+            XElement el5 = new XElement("Height");
+            el5.Value = Height.ToString();
+            element.Add(el5);
 
             element.Save("config.xml");
         }
@@ -41,6 +65,10 @@ namespace GPSTracker
             PathGpsData = element.Element("PathGPSData")?.Value ?? $"{PathGpsData}";
             
             PathOpenWormhole = element.Element("PathOpenWormhole")?.Value ?? $"{PathOpenWormhole}";
+            
+            Width = int.Parse(element.Element("Width")?.Value ?? $"{Width}");
+            
+            Height = int.Parse(element.Element("Height")?.Value ?? $"{Height}");
 
             element.Save("config.xml");
         }

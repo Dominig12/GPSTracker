@@ -82,10 +82,10 @@ namespace GPSTracker
 
         private void CreateComponents()
         {
-            Size = new Size(1275, 1275);
+            Size = new Size(Config.Width, Config.Height);
             _map = new PictureBox
             {
-                Size = new Size(1275, 1275),
+                Size = new Size(Config.Width, Config.Width),
                 Location = new Point(10, 10),
                 SizeMode = PictureBoxSizeMode.Zoom,
             };
@@ -319,9 +319,9 @@ namespace GPSTracker
 
         private void display_MouseDown(object sender, MouseEventArgs e)
         {
-            float coef = _panel.Width / 255;
+            float coef = _panel.Width / 255f;
             int x = Convert.ToInt32(value : (e.X - coef / 2) / coef);
-            int y = Convert.ToInt32(value : 255 - (e.Y - coef / 2) / coef);
+            int y = Convert.ToInt32(value : 255f - (e.Y - coef / 2) / coef);
             int z = Convert.ToInt32(value : _selectedZ.ToString());
             Form3 form = new Form3();
             form.InitialCoords = new MapPoint()
@@ -369,10 +369,10 @@ namespace GPSTracker
 
         private void display_MouseMove(object sender, MouseEventArgs e)
         {
-            float coef = _panel.Width / 255;
+            float coef = _panel.Width / 255f;
             int x = Convert.ToInt32(value : (e.X - coef / 2) / coef);
-            int y = Convert.ToInt32(value : 255 - (e.Y - coef / 2) / coef);
-            int z = Convert.ToInt32(value : 2);
+            int y = Convert.ToInt32(value : 255f - (e.Y - coef / 2) / coef);
+            int z = Convert.ToInt32(value : _selectedZ);
             string coordsText = String.Format(format : "{0} {1} {2}", arg0 : x, arg1 : y, arg2 : z);
             toolTip1.SetToolTip(control : _panel, caption : coordsText);
         }
