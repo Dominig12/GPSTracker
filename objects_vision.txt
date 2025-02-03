@@ -1,4 +1,4 @@
-/turf/simulated/floor=#131313
+/turf/simulated/floor=#272727
 /turf/simulated/wall=#ff9c00
 /turf/simulated/mineral
 /obj/structure/window=#b2daff

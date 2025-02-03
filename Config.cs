@@ -8,7 +8,7 @@ namespace GPSTracker
     {
         public static string PathCacheByond { get; set; } = Environment.GetFolderPath(Environment.SpecialFolder.Personal) + @"\BYOND\cache\tmp";
 
-        public static string PathGpsData { get; set; } = "../GPSData.txt";
+        public static string PathGpsData { get; set; } = "GPSData.txt";
 
         public static string PathOpenWormhole { get; set; } = "../open_wormhole.txt";
 
