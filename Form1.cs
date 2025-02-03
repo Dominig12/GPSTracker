@@ -201,7 +201,7 @@ namespace GPSTracker
         private List<int[]> GetGpsData()
         {
             List<string> coords_gps_list = ParseCoordsList(textBox1.Text);
-            string GPSData = File.ReadAllText("GPSData.txt");
+            string GPSData = File.ReadAllText(Config.PathGpsData);
             PositionGps positionGps = JsonConvert.DeserializeObject<PositionGps>(GPSData);
             foreach (string gpsOther in positionGps.OtherGps)
             {
@@ -239,7 +239,7 @@ namespace GPSTracker
 
         private int[] GetPlayerGPSData()
         {
-            string GPSData = File.ReadAllText("GPSData.txt");
+            string GPSData = File.ReadAllText(Config.PathGpsData);
             PositionGps positionGps = JsonConvert.DeserializeObject<PositionGps>(GPSData);
             string coords = positionGps.Position;
             Regex regex = new Regex(@"\D+", RegexOptions.Compiled);

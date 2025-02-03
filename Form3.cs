@@ -117,7 +117,7 @@ namespace GPSTracker
             int y = initial_coords.Value.Value + 5 - Convert.ToInt32(Math.Round((e.Y - coef / 2) / coef, MidpointRounding.ToEven));
             int z = Convert.ToInt32(initial_coords.Key);
             string coords = String.Format("{0} {1} {2}", x, y, z);
-            StreamWriter writer = new StreamWriter("open_wormhole.txt", false);
+            StreamWriter writer = new StreamWriter(Config.PathOpenWormhole, false);
             writer.WriteLine(coords);
             writer.Close();
             this.Close();
