@@ -45,6 +45,8 @@ namespace GPSTracker
                     
                 Map newMap = new Map(points);
                 
+                newMap.InitStaticMap(_map.Width, _map.Height, 15, 1f);
+                
                 Maps.Add(z, newMap);
             }
         }
