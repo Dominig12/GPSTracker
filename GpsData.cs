@@ -25,6 +25,9 @@ namespace GPSTracker
 
         [JsonPropertyName("signals")]
         public List<Signal> Signals;
+        
+        [JsonPropertyName("crew_signals")]
+        public List<Signal> CrewSignals;
     }
     
     public class Signal

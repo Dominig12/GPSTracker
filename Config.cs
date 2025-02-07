@@ -8,7 +8,7 @@ namespace GPSTracker
     {
         public static string PathCacheByond { get; set; } = Environment.GetFolderPath(Environment.SpecialFolder.Personal) + @"\BYOND\cache\tmp";
 
-        public static string PathGpsData { get; set; } = "GPSData.txt";
+        public static string TguiInterceptorData { get; set; } = "http://localhost:5000";
 
         public static string PathOpenWormhole { get; set; } = "../open_wormhole.txt";
         
@@ -35,8 +35,8 @@ namespace GPSTracker
             el3.Value = PathCacheByond;
             element.Add(el3);
         
-            XElement el2 = new XElement("PathGPSData");
-            el2.Value = PathGpsData;
+            XElement el2 = new XElement("TguiInterceptorData");
+            el2.Value = TguiInterceptorData;
             element.Add(el2);
             
             XElement el1 = new XElement("PathOpenWormhole");
@@ -62,7 +62,7 @@ namespace GPSTracker
 
             PathCacheByond = element.Element("PathCacheByond")?.Value ?? $"{PathCacheByond}";
         
-            PathGpsData = element.Element("PathGPSData")?.Value ?? $"{PathGpsData}";
+            TguiInterceptorData = element.Element("TguiInterceptorData")?.Value ?? $"{TguiInterceptorData}";
             
             PathOpenWormhole = element.Element("PathOpenWormhole")?.Value ?? $"{PathOpenWormhole}";
             

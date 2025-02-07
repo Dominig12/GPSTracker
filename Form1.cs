@@ -4,7 +4,9 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Newtonsoft.Json;
 
@@ -19,6 +21,7 @@ namespace GPSTracker
         private int _selectedZ;
         public MapPoint PlayerGps;
         public List<MapPoint> SignalsGps;
+        private bool _update = false;
 
         public Form1()
         {
@@ -250,58 +253,91 @@ namespace GPSTracker
             UpdateCoords();
         }
 
-        private void UpdateCoords()
+        private async Task UpdateCoords()
         {
-            string[] lines = File.ReadAllLines(Config.PathGpsData);
-
-            if (lines.Length < 1)
+            Task.Run(() =>
             {
-                return;
-            }
-
-
-            GPS gps = null;
-
-            try
-            {
-                gps = JsonConvert.DeserializeObject<GPS>(lines[0]);
-            }
-            catch 
-            {
-                // ignore
-            }
-
-            if (gps == null || gps.Position == null || gps.Position.Count < 3)
-            {
-                return;
-            }
-            
-            PlayerGps = new MapPoint()
-            {
-                X = gps.Position[0],
-                Y = gps.Position[1],
-                Z = gps.Position[2],
-                Tag = gps.Tag
-            };
-
-            SignalsGps = new List<MapPoint>();
-            foreach (Signal gpsSignal in gps.Signals)
-            {
-                if (gpsSignal.Position == null || gpsSignal.Position.Count < 3)
+                if (_update)
                 {
-                    continue;
+                    return;
                 }
 
-                MapPoint signal = new MapPoint()
+                try
                 {
-                    X = gpsSignal.Position[0],
-                    Y = gpsSignal.Position[1],
-                    Z = gpsSignal.Position[2],
-                    Tag = gpsSignal.Tag
-                };
-                
-                SignalsGps.Add(signal);
-            }
+                    _update = true;
+                    GPS gps = null;
+                    try
+                    {
+                        using HttpClient client = new HttpClient();
+                        HttpResponseMessage response = client.GetAsync(Config.TguiInterceptorData + "/api/getData?type=gps")
+                            .GetAwaiter().GetResult();
+                        response.EnsureSuccessStatusCode(); // Проверка на ошибки
+
+                        string responseBody = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+
+                        gps = JsonConvert.DeserializeObject<GPS>(responseBody);
+                    }
+                    catch
+                    {
+                        //
+                    }
+
+                    if (gps == null || gps.Position == null || gps.Position.Count < 3)
+                    {
+                        return;
+                    }
+
+                    PlayerGps = new MapPoint()
+                    {
+                        X = gps.Position[0],
+                        Y = gps.Position[1],
+                        Z = gps.Position[2],
+                        Tag = gps.Tag
+                    };
+
+                    SignalsGps = new List<MapPoint>();
+                    foreach (Signal gpsSignal in gps.Signals)
+                    {
+                        if (gpsSignal.Position == null || gpsSignal.Position.Count < 3)
+                        {
+                            continue;
+                        }
+
+                        MapPoint signal = new MapPoint()
+                        {
+                            X = gpsSignal.Position[0],
+                            Y = gpsSignal.Position[1],
+                            Z = gpsSignal.Position[2],
+                            Tag = gpsSignal.Tag
+                        };
+
+                        SignalsGps.Add(signal);
+                    }
+
+                    foreach (Signal gpsSignal in gps.CrewSignals)
+                    {
+                        if (gpsSignal.Position == null || gpsSignal.Position.Count < 3)
+                        {
+                            continue;
+                        }
+
+                        MapPoint signal = new MapPoint()
+                        {
+                            X = gpsSignal.Position[0],
+                            Y = gpsSignal.Position[1],
+                            Z = _selectedZ,
+                            Tag = gpsSignal.Tag
+                        };
+
+                        SignalsGps.Add(signal);
+                    }
+                }
+                finally
+                {
+                    _update = false;
+                }
+            });
+
         }
 
         private void display_MouseDown(object sender, MouseEventArgs e)
