@@ -26,7 +26,7 @@ namespace GPSTracker
             KeyPreview = true;
             CreateComponents();
             InitMaps();
-            InitEmpty(new[]
+            InitEmpty(zList : new[]
             {
                 1, 2, 3, 4, 5, 6, 7, 8, 9
             });
@@ -36,42 +36,42 @@ namespace GPSTracker
         {
             foreach (int z in zList)
             {
-                if (Maps.ContainsKey(z))
+                if (Maps.ContainsKey(key : z))
                 {
                     continue;
                 }
                 
                 List<MapPoint> points = new List<MapPoint>();
                     
-                Map newMap = new Map(points);
+                Map newMap = new Map(points : points);
                 
-                newMap.InitStaticMap(_map.Width, _map.Height, 15, 1f);
+                newMap.InitStaticMap(mapWidth : _map.Width, mapHeight : _map.Height, stepGrid : 15, scale : 1f);
                 
-                Maps.Add(z, newMap);
+                Maps.Add(key : z, value : newMap);
             }
         }
 
         private void InitMaps()
         {
             var renderer = new MapRenderer();
-            string[] lines = File.ReadAllLines("maps.txt");
+            string[] lines = File.ReadAllLines(path : "maps.txt");
 
             foreach (string line in lines)
             {
                 var parts = line.Split('=');
                 if (parts.Length == 2)
                 {
-                    List<MapPoint> points = renderer.ParseMap(parts[0]);
+                    List<MapPoint> points = renderer.ParseMap(mapName : parts[0]);
                     
-                    Map newMap = new Map(points);
+                    Map newMap = new Map(points : points);
                     
-                    Maps.Add(int.Parse(parts[1]), newMap);
+                    Maps.Add(key : int.Parse(s : parts[1]), value : newMap);
                 }
             }
             
             foreach (KeyValuePair<int,Map> map in Maps)
             {
-                map.Value.InitStaticMap(_map.Width, _map.Height, 15, 1f);
+                map.Value.InitStaticMap(mapWidth : _map.Width, mapHeight : _map.Height, stepGrid : 15, scale : 1f);
             }
 
             if (Maps.Count > 0)
@@ -84,11 +84,11 @@ namespace GPSTracker
 
         private void CreateComponents()
         {
-            Size = new Size(Config.Width, Config.Height);
+            Size = new Size(width : Config.Width, height : Config.Height);
             _map = new PictureBox
             {
-                Size = new Size(Config.Width, Config.Width),
-                Location = new Point(10, 10),
+                Size = new Size(width : Config.Width, height : Config.Width),
+                Location = new Point(x : 10, y : 10),
                 SizeMode = PictureBoxSizeMode.Zoom,
             };
             
@@ -104,81 +104,91 @@ namespace GPSTracker
             _panel.Paint += display_Paint;
             _panel.MouseMove += display_MouseMove;
             _panel.MouseDown += display_MouseDown;
+            
+            //_map.Paint += MapOnPaint;
     
             // Добавление на форму
-            Controls.Add(_map);
-            Controls.Add(_panel);
+            Controls.Add(value : _map);
+            Controls.Add(value : _panel);
             
             _panel.BringToFront();
         }
 
+        // private void MapOnPaint(
+        //     object sender,
+        //     PaintEventArgs e )
+        // {
+        //     _map.Image = Maps[key : _selectedZ]
+        //         .GetCurrentView();
+        // }
+
         protected override void OnKeyDown(KeyEventArgs e)
         {
-            base.OnKeyDown(e);
+            base.OnKeyDown(e : e);
 
             switch (e.KeyCode)
             {
                 case Keys.D1:
                     _selectedZ = 1;
-                    if (Maps.ContainsKey(1))
+                    if (Maps.ContainsKey(key : 1))
                     {
-                        _map.Image = Maps[1].GetStaticMap();
+                        _map.Image = Maps[key : 1].GetStaticMap();
                     }
                     break;
                 case Keys.D2:
                     _selectedZ = 2;
-                    if (Maps.ContainsKey(2))
+                    if (Maps.ContainsKey(key : 2))
                     {
-                        _map.Image = Maps[2].GetStaticMap();
+                        _map.Image = Maps[key : 2].GetStaticMap();
                     }
                     break;
                 case Keys.D3:
                     _selectedZ = 3;
-                    if (Maps.ContainsKey(3))
+                    if (Maps.ContainsKey(key : 3))
                     {
-                        _map.Image = Maps[3].GetStaticMap();
+                        _map.Image = Maps[key : 3].GetStaticMap();
                     }
                     break;
                 case Keys.D4:
                     _selectedZ = 4;
-                    if (Maps.ContainsKey(4))
+                    if (Maps.ContainsKey(key : 4))
                     {
-                        _map.Image = Maps[4].GetStaticMap();
+                        _map.Image = Maps[key : 4].GetStaticMap();
                     }
                     break;
                 case Keys.D5:
                     _selectedZ = 5;
-                    if (Maps.ContainsKey(5))
+                    if (Maps.ContainsKey(key : 5))
                     {
-                        _map.Image = Maps[5].GetStaticMap();
+                        _map.Image = Maps[key : 5].GetStaticMap();
                     }
                     break;
                 case Keys.D6:
                     _selectedZ = 6;
-                    if (Maps.ContainsKey(6))
+                    if (Maps.ContainsKey(key : 6))
                     {
-                        _map.Image = Maps[6].GetStaticMap();
+                        _map.Image = Maps[key : 6].GetStaticMap();
                     }
                     break;
                 case Keys.D7:
                     _selectedZ = 7;
-                    if (Maps.ContainsKey(7))
+                    if (Maps.ContainsKey(key : 7))
                     {
-                        _map.Image = Maps[7].GetStaticMap();
+                        _map.Image = Maps[key : 7].GetStaticMap();
                     }
                     break;
                 case Keys.D8:
                     _selectedZ = 8;
-                    if (Maps.ContainsKey(8))
+                    if (Maps.ContainsKey(key : 8))
                     {
-                        _map.Image = Maps[8].GetStaticMap();
+                        _map.Image = Maps[key : 8].GetStaticMap();
                     }
                     break;
                 case Keys.D9:
                     _selectedZ = 9;
-                    if (Maps.ContainsKey(9))
+                    if (Maps.ContainsKey(key : 9))
                     {
-                        _map.Image = Maps[9].GetStaticMap();
+                        _map.Image = Maps[key : 9].GetStaticMap();
                     }
                     break;
             }
@@ -186,6 +196,32 @@ namespace GPSTracker
 
         private void display_Paint(object sender, PaintEventArgs e)
         {
+            PlayerGps ??= new MapPoint()
+            {
+                ColorHex = "#f44336",
+                Tag = "Dark Water",
+                X = 10,
+                Y = 10,
+                Z = 2
+            };
+
+            Map map = Maps[key : _selectedZ];
+
+            PlayerGps = PlayerGps.MovePoint(
+                point : new MapPoint()
+                {
+                    X = PlayerGps.X + 1,
+                    Y = PlayerGps.Y,
+                    Z = PlayerGps.Z,
+                    Tag = PlayerGps.Tag,
+                    ColorHex = PlayerGps.ColorHex
+                } , map : map);
+
+            if ( PlayerGps.X >= 255 )
+            {
+                PlayerGps.X = 10;
+            }
+            
             if (PlayerGps == null)
             {
                 return;
@@ -201,11 +237,11 @@ namespace GPSTracker
             if (PlayerGps.Z == _selectedZ)
             {
                 // Отрисовка игрока
-                Maps[_selectedZ].DrawPoint(
-                    _map.Width,
-                    _map.Height,
+                Maps[key : _selectedZ].DrawPoint(
+                    mapWidth : _map.Width,
+                    mapHeight : _map.Height,
                     g : e.Graphics,
-                    pointPlayer,
+                    point : pointPlayer,
                     entityColor : Color.Red,
                     textBrush : Brushes.White
                 );
@@ -228,11 +264,11 @@ namespace GPSTracker
                     Tag = signalsGps.Tag
                 };
                 
-                Maps[_selectedZ].DrawPoint(
-                    _map.Width,
-                    _map.Height,
+                Maps[key : _selectedZ].DrawPoint(
+                    mapWidth : _map.Width,
+                    mapHeight : _map.Height,
                     g : e.Graphics,
-                    point,
+                    point : point,
                     entityColor : Color.Red,
                     textBrush : Brushes.White
                 );
@@ -252,7 +288,7 @@ namespace GPSTracker
 
         private void UpdateCoords()
         {
-            string[] lines = File.ReadAllLines(Config.PathGpsData);
+            string[] lines = File.ReadAllLines(path : Config.PathGpsData);
 
             if (lines.Length < 1)
             {
@@ -264,7 +300,7 @@ namespace GPSTracker
 
             try
             {
-                gps = JsonConvert.DeserializeObject<GPS>(lines[0]);
+                gps = JsonConvert.DeserializeObject<GPS>(value : lines[0]);
             }
             catch 
             {
@@ -278,9 +314,9 @@ namespace GPSTracker
             
             PlayerGps = new MapPoint()
             {
-                X = gps.Position[0],
-                Y = gps.Position[1],
-                Z = gps.Position[2],
+                X = gps.Position[index : 0],
+                Y = gps.Position[index : 1],
+                Z = gps.Position[index : 2],
                 Tag = gps.Tag
             };
 
@@ -294,40 +330,48 @@ namespace GPSTracker
 
                 MapPoint signal = new MapPoint()
                 {
-                    X = gpsSignal.Position[0],
-                    Y = gpsSignal.Position[1],
-                    Z = gpsSignal.Position[2],
+                    X = gpsSignal.Position[index : 0],
+                    Y = gpsSignal.Position[index : 1],
+                    Z = gpsSignal.Position[index : 2],
                     Tag = gpsSignal.Tag
                 };
                 
-                SignalsGps.Add(signal);
+                SignalsGps.Add(item : signal);
             }
         }
 
         private void display_MouseDown(object sender, MouseEventArgs e)
         {
-            float coef = _panel.Width / 255f;
-            int x = Convert.ToInt32(value : (e.X - coef / 2) / coef);
-            int y = Convert.ToInt32(value : 255f - (e.Y - coef / 2) / coef);
+            (int x, int y) coords = CoordinateHelper.ConvertToMapCoordinates(
+                imageX : e.X,
+                imageY : e.Y,
+                mapWidth : 255,
+                mapHeight : 255,
+                imageWidth : _panel.Width,
+                imageHeight : _panel.Height );
+            
             int z = Convert.ToInt32(value : _selectedZ.ToString());
             Form3 form = new Form3();
             MapPoint center = new MapPoint()
             {
-                X = x,
-                Y = y,
+                X = coords.x,
+                Y = coords.y,
                 Z = z
             };
+            
             form.InitialCoords = center;
 
             MapPoint nullPoint = new MapPoint()
             {
                 X = center.X - 5,
-                Y = center.Y - 6,
+                Y = center.Y - 5,
                 Z = center.Z
             };
 
-            List<MapPoint> pointsMiniMap = Maps[_selectedZ].GetPoints().Where(point => Math.Abs(point.X - center.X) < 7)
-                .Where(point => Math.Abs(point.Y - center.Y) < 7).ToList();
+            List<MapPoint> pointsMiniMap = Maps[key : _selectedZ].GetPoints()
+                .Where(predicate : point => point.X >= nullPoint.X && point.X <= nullPoint.X + 10)
+                .Where(predicate : point => point.Y >= nullPoint.Y && point.Y <= nullPoint.Y + 10)
+                .ToList();
             
             List<MapPoint> deltaPoints = new List<MapPoint>();
 
@@ -335,27 +379,32 @@ namespace GPSTracker
             {
                 MapPoint deltaPoint = new MapPoint()
                 {
-                    X = mapPoint.X - nullPoint.X,
-                    Y = mapPoint.Y - nullPoint.Y,
+                    X = mapPoint.X - nullPoint.X + 1,
+                    Y = mapPoint.Y - nullPoint.Y + 1,
                     Z = nullPoint.Z,
                     ColorHex = mapPoint.ColorHex
                 };
                 
-                deltaPoints.Add(deltaPoint);
+                deltaPoints.Add(item : deltaPoint);
             }
             
-            form.Map = new Map(deltaPoints, 11, 11);
+            form.Map = new Map(points : deltaPoints, width : 11, height : 11);
             form.Form = this;
             form.Show();
         }
 
         private void display_MouseMove(object sender, MouseEventArgs e)
         {
-            float coef = _panel.Width / 255f;
-            int x = Convert.ToInt32(value : (e.X - coef / 2) / coef);
-            int y = Convert.ToInt32(value : 255f - (e.Y - coef / 2) / coef);
+            (int x, int y) coords = CoordinateHelper.ConvertToMapCoordinates(
+                imageX : e.X,
+                imageY : e.Y,
+                mapWidth : 255,
+                mapHeight : 255,
+                imageWidth : _panel.Width,
+                imageHeight : _panel.Height );
+            
             int z = Convert.ToInt32(value : _selectedZ);
-            string coordsText = String.Format(format : "{0} {1} {2}", arg0 : x, arg1 : y, arg2 : z);
+            string coordsText = String.Format(format : "{0} {1} {2}", arg0 : coords.x, arg1 : coords.y, arg2 : z);
             toolTip1.SetToolTip(control : _panel, caption : coordsText);
         }
     }

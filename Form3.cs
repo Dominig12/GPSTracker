@@ -26,7 +26,7 @@ namespace GPSTracker
             CreateComponents();
             Shown += (sender, args) =>
             {
-                Map.InitStaticMap(_panel.Width, _panel.Height, 1, 1);
+                Map.InitStaticMap(mapWidth : _panel.Width, mapHeight : _panel.Height, stepGrid : 1, scale : 1);
                 _map.Image = Map.GetStaticMap();
             };
         }
@@ -35,8 +35,8 @@ namespace GPSTracker
         {
             _map = new PictureBox
             {
-                Size = new Size(330, 330),
-                Location = new Point(10, 10),
+                Size = new Size(width : 330, height : 330),
+                Location = new Point(x : 10, y : 10),
                 SizeMode = PictureBoxSizeMode.Zoom,
             };
             
@@ -54,8 +54,8 @@ namespace GPSTracker
             _panel.Paint += display_Paint;
     
             // Добавление на форму
-            Controls.Add(_map);
-            Controls.Add(_panel);
+            Controls.Add(value : _map);
+            Controls.Add(value : _panel);
             
             _panel.BringToFront();
         }
@@ -76,7 +76,7 @@ namespace GPSTracker
             MapPoint nullPoint = new MapPoint()
             {
                 X = InitialCoords.X - 5,
-                Y = InitialCoords.Y - 6,
+                Y = InitialCoords.Y - 5,
                 Z = InitialCoords.Z
             };
             
@@ -88,18 +88,19 @@ namespace GPSTracker
             MapPoint pointPlayer = new MapPoint()
             {
                 X = Form.PlayerGps.X - nullPoint.X,
-                Y = Form.PlayerGps.Y + 1 - nullPoint.Y,
+                Y = Form.PlayerGps.Y - nullPoint.Y,
                 Z = Form.PlayerGps.Z,
                 Tag = Form.PlayerGps.Tag
             };
+            
             if (Form.PlayerGps.Z == InitialCoords.Z)
             {
                 // Отрисовка игрока
                 Map.DrawPoint(
-                    _map.Width,
-                    _map.Height,
+                    mapWidth : _map.Width,
+                    mapHeight : _map.Height,
                     g : e.Graphics,
-                    pointPlayer,
+                    point : pointPlayer,
                     entityColor : Color.Red,
                     textBrush : Brushes.White
                 );
@@ -116,17 +117,17 @@ namespace GPSTracker
                 
                 MapPoint point = new MapPoint()
                 {
-                    X = signalsGps.X - nullPoint.X,
-                    Y = signalsGps.Y + 1 - nullPoint.Y,
+                    X = signalsGps.X - nullPoint.X + 1,
+                    Y = signalsGps.Y - nullPoint.Y + 1,
                     Z = signalsGps.Z,
                     Tag = signalsGps.Tag
                 };
                 
                 Map.DrawPoint(
-                    _map.Width,
-                    _map.Height,
+                    mapWidth : _map.Width,
+                    mapHeight : _map.Height,
                     g : e.Graphics,
-                    point,
+                    point : point,
                     entityColor : Color.Red,
                     textBrush : Brushes.White
                 );
@@ -135,25 +136,41 @@ namespace GPSTracker
 
         private void panel1_MouseDown(object sender, MouseEventArgs e)
         {
-            float coef = _panel.Width / 11f;
-            int x = InitialCoords.X - 5 + Convert.ToInt32(Math.Round((e.X - coef / 2) / coef, MidpointRounding.ToEven));
-            int y = InitialCoords.Y + 5 - Convert.ToInt32(Math.Round((e.Y - coef / 2) / coef, MidpointRounding.ToEven));
-            int z = Convert.ToInt32(InitialCoords.Z);
-            string coords = String.Format("{0} {1} {2}", x, y, z);
-            StreamWriter writer = new StreamWriter(Config.PathOpenWormhole, false);
-            writer.WriteLine(coords);
+            (int x, int y) coords = CoordinateHelper.ConvertToMapCoordinates(
+                imageX : e.X,
+                imageY : e.Y,
+                mapWidth : 11,
+                mapHeight : 11,
+                imageWidth : _panel.Width,
+                imageHeight : _panel.Height );
+            
+            int x = InitialCoords.X - 6 + coords.x;
+            int y = InitialCoords.Y - 6 + coords.y;
+            int z = Convert.ToInt32(value : InitialCoords.Z);
+            
+            string coordsStr = String.Format(format : "{0} {1} {2}", arg0 : x, arg1 : y, arg2 : z);
+            StreamWriter writer = new StreamWriter(path : Config.PathOpenWormhole, append : false);
+            writer.WriteLine(value : coordsStr);
             writer.Close();
             this.Close();
         }
 
         private void panel1_MouseMove(object sender, MouseEventArgs e)
         {
-            float coef = _panel.Width / 11f;
-            int x = InitialCoords.X - 5 + Convert.ToInt32(Math.Round((e.X - coef / 2) / coef, MidpointRounding.ToEven));
-            int y = InitialCoords.Y + 5 - Convert.ToInt32(Math.Round((e.Y - coef / 2) / coef, MidpointRounding.ToEven));
-            int z = Convert.ToInt32(InitialCoords.Z);
-            string coords_text = String.Format("{0} {1} {2}", x, y, z);
-            toolTip1.SetToolTip(_panel, coords_text);
+            (int x, int y) coords = CoordinateHelper.ConvertToMapCoordinates(
+                imageX : e.X,
+                imageY : e.Y,
+                mapWidth : 11,
+                mapHeight : 11,
+                imageWidth : _panel.Width,
+                imageHeight : _panel.Height );
+            
+            int x = InitialCoords.X - 6 + coords.x;
+            int y = InitialCoords.Y - 6 + coords.y;
+            int z = Convert.ToInt32(value : InitialCoords.Z);
+            
+            string coordsText = String.Format(format : "{0} {1} {2}", arg0 : x, arg1 : y, arg2 : z);
+            toolTip1.SetToolTip(control : _panel, caption : coordsText);
         }
 
         private void Form3_Load(object sender, EventArgs e)
