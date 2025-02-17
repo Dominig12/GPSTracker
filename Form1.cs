@@ -90,7 +90,7 @@ namespace GPSTracker
             Size = new Size(width : Config.Width, height : Config.Height);
             _map = new PictureBox
             {
-                Size = new Size(width : Config.Width, height : Config.Width),
+                Size = new Size(width : Config.Width, height : Config.Height),
                 Location = new Point(x : 10, y : 10),
                 SizeMode = PictureBoxSizeMode.Zoom,
             };
@@ -199,32 +199,6 @@ namespace GPSTracker
 
         private void display_Paint(object sender, PaintEventArgs e)
         {
-            PlayerGps ??= new MapPoint()
-            {
-                ColorHex = "#f44336",
-                Tag = "Dark Water",
-                X = 10,
-                Y = 10,
-                Z = 2
-            };
-
-            Map map = Maps[key : _selectedZ];
-
-            PlayerGps = PlayerGps.MovePoint(
-                point : new MapPoint()
-                {
-                    X = PlayerGps.X + 1,
-                    Y = PlayerGps.Y,
-                    Z = PlayerGps.Z,
-                    Tag = PlayerGps.Tag,
-                    ColorHex = PlayerGps.ColorHex
-                } , map : map);
-
-            if ( PlayerGps.X >= 255 )
-            {
-                PlayerGps.X = 10;
-            }
-            
             if (PlayerGps == null)
             {
                 return;
@@ -233,7 +207,7 @@ namespace GPSTracker
             MapPoint pointPlayer = new MapPoint()
             {
                 X = PlayerGps.X,
-                Y = PlayerGps.Y + 1,
+                Y = PlayerGps.Y,
                 Z = PlayerGps.Z,
                 Tag = PlayerGps.Tag
             };
@@ -262,7 +236,7 @@ namespace GPSTracker
                 MapPoint point = new MapPoint()
                 {
                     X = signalsGps.X,
-                    Y = signalsGps.Y + 1,
+                    Y = signalsGps.Y,
                     Z = signalsGps.Z,
                     Tag = signalsGps.Tag
                 };
